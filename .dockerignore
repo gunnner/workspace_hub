@@ -3,6 +3,8 @@
 # Ignore git directory.
 /.git/
 /.gitignore
+.git
+.gitignore
 
 # Ignore bundler config.
 /.bundle
@@ -10,6 +12,9 @@
 # Ignore all environment files (except templates).
 /.env*
 !/.env*.erb
+.env
+.env.*
+!.env.example
 
 # Ignore all default key files.
 /config/master.key
@@ -17,9 +22,13 @@
 
 # Ignore all logfiles and tempfiles.
 /log/*
+log/*
+*.log
 /tmp/*
+tmp/*
 !/log/.keep
 !/tmp/.keep
+*.swp
 
 # Ignore pidfiles, but keep the directory.
 /tmp/pids/*
@@ -33,6 +42,8 @@
 
 # Ignore assets.
 /node_modules/
+node_modules/
+
 /app/assets/builds/*
 !/app/assets/builds/.keep
 /public/assets
@@ -46,3 +57,9 @@
 # Ignore Docker-related files
 /.dockerignore
 /Dockerfile*
+
+# Ignore macOS system files
+.DS_Store
+
+# Ignore coverage reports and temp build files
+coverage/

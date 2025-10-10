@@ -8,8 +8,10 @@
 /.bundle
 
 # Ignore all environment files (except templates).
+.env
 /.env*
 !/.env*.erb
+!.env.example
 
 # Ignore all logfiles and tempfiles.
 /log/*
@@ -36,3 +38,9 @@
 
 /app/assets/builds/*
 !/app/assets/builds/.keep
+
+# Docker
+docker-compose.override.yml
+
+# Rubymine files
+.idea

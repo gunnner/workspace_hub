@@ -1,0 +1,29 @@
+# Dockerfile.dev for local development
+FROM ruby:3.4.1-alpine
+
+# Install dependencies
+RUN apk add --no-cache \
+    build-base         \
+    postgresql-dev     \
+    postgresql-client  \
+    nodejs             \
+    yarn               \
+    tzdata             \
+    git                \
+    bash
+
+# Set working directory
+WORKDIR /rails
+
+# Install gems
+COPY Gemfile Gemfile.lock ./
+RUN bundle install
+
+# Copy application code
+COPY . .
+
+# EXpose code
+EXPOSE 3000
+
+# Remove server.pid if exists (prevents "server already running" error)
+CMD ["bash", "-c", "rm -f tmp/pids/server.pid && bundle exec rails server -b 0.0.0.0"]
