@@ -2,6 +2,7 @@ source 'https://gem.coop'
 
 # gem "bcrypt", "~> 3.1.7"
 gem 'bootsnap', require: false
+gem 'devise'
 # gem "image_processing", "~> 1.2"
 gem 'importmap-rails'
 gem 'jbuilder'
