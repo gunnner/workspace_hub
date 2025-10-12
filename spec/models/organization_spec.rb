@@ -25,7 +25,7 @@ RSpec.describe Organization, type: :model do
     end
 
     it 'rejects invalid subdomains' do
-      invalid_subdomains = ['Invalid Subdomain!', 'my_company', 'test@123', 'a b c', 'TEST']
+      invalid_subdomains = [ 'Invalid Subdomain!', 'my_company', 'test@123', 'a b c', 'TEST' ]
 
       invalid_subdomains.each do |subdomain|
         org = build(:organization, subdomain: subdomain)
