@@ -6,7 +6,7 @@ FactoryBot.define do
     status      { :active }
 
     after(:build) do |project|
-      ActsAsTenant.current_tenant ||= project.organization
+      ActsAsTenant.current_tenant = project.organization if ActsAsTenant.current_tenant.blank? && project.organization.present?
     end
   end
 end

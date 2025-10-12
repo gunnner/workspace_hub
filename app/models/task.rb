@@ -1,18 +1,16 @@
 class Task < ApplicationRecord
   acts_as_tenant(:organization)
 
-  belongs_to :project
-  belongs_to :organization
+  belongs_to :project,      optional: false
+  belongs_to :organization, optional: false
 
-  enum status: {
+  enum :status, {
     todo:        0,
     in_progress: 1,
     completed:   2
   }.freeze
 
-  validates :title,        presence: true
-  validates :project,      presence: true
-  validates :organization, presence: true
+  validates :title, presence: true
 
   before_validation :set_organization_from_project, on: :create
 

@@ -6,8 +6,9 @@ FactoryBot.define do
     status      { :todo }
 
     after(:build) do |task|
-      task.organization           ||= task.project&.organization
-      ActsAsTenant.current_tenant ||= task.organization
+      task.organization ||= task.project&.organization
+
+      ActsAsTenant.current_tenant = task.organization if ActsAsTenant.current_tenant.blank? && task.organization.present?
     end
 
     trait :completed do

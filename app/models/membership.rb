@@ -2,7 +2,7 @@ class Membership < ApplicationRecord
   belongs_to :user
   belongs_to :organization
 
-  enum role: {
+  enum :role, {
     member: 0,
     admin:  1,
     owner:  2
