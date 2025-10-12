@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_10_11_103829) do
+ActiveRecord::Schema[7.2].define(version: 2025_10_12_111900) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -33,6 +33,32 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_11_103829) do
     t.index ["subdomain"], name: "index_organizations_on_subdomain", unique: true
   end
 
+  create_table "projects", force: :cascade do |t|
+    t.bigint "organization_id", null: false
+    t.string "name", null: false
+    t.text "description"
+    t.integer "status", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["organization_id", "name"], name: "index_projects_on_organization_id_and_name"
+    t.index ["organization_id"], name: "index_projects_on_organization_id"
+  end
+
+  create_table "tasks", force: :cascade do |t|
+    t.bigint "project_id", null: false
+    t.bigint "organization_id", null: false
+    t.string "title", null: false
+    t.text "description"
+    t.integer "status", default: 0, null: false
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["organization_id", "project_id"], name: "index_tasks_on_organization_id_and_project_id"
+    t.index ["organization_id"], name: "index_tasks_on_organization_id"
+    t.index ["project_id", "status"], name: "index_tasks_on_project_id_and_status"
+    t.index ["project_id"], name: "index_tasks_on_project_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
@@ -47,4 +73,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_11_103829) do
 
   add_foreign_key "memberships", "organizations"
   add_foreign_key "memberships", "users"
+  add_foreign_key "projects", "organizations"
+  add_foreign_key "tasks", "organizations"
+  add_foreign_key "tasks", "projects"
 end

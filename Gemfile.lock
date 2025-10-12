@@ -1,5 +1,5 @@
 GEM
-  remote: https://gem.coop/
+  remote: https://rubygems.org/
   specs:
     actioncable (7.2.2.2)
       actionpack (= 7.2.2.2)
@@ -72,6 +72,8 @@ GEM
       minitest (>= 5.1)
       securerandom (>= 0.3)
       tzinfo (~> 2.0, >= 2.0.5)
+    acts_as_tenant (1.0.1)
+      rails (>= 6.0)
     ast (2.4.3)
     base64 (0.3.0)
     bcrypt (3.1.20)
@@ -348,6 +350,7 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  acts_as_tenant
   bootsnap
   brakeman
   debug

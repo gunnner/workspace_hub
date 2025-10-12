@@ -46,6 +46,16 @@ RSpec.configure do |config|
   # instead of true.
   config.use_transactional_fixtures = true
 
+  config.before(:suite) do
+    ActsAsTenant.configure do |acts_config|
+      acts_config.require_tenant = false
+    end
+  end
+
+  config.before(:each) do
+    ActsAsTenant.current_tenant = nil
+  end
+
   # You can uncomment this line to turn off ActiveRecord support entirely.
   # config.use_active_record = false
 
@@ -74,7 +84,7 @@ RSpec.configure do |config|
   Shoulda::Matchers.configure do |config|
     config.integrate do |with|
       with.test_framework :rspec
-      with.library :rails
+      with.library        :rails
     end
   end
 end

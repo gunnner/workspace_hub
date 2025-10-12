@@ -1,5 +1,6 @@
-source 'https://gem.coop'
+source 'https://rubygems.org'
 
+gem 'acts_as_tenant'
 # gem "bcrypt", "~> 3.1.7"
 gem 'bootsnap', require: false
 gem 'devise'
