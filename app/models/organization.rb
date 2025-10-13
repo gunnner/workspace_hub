@@ -5,6 +5,10 @@ class Organization < ApplicationRecord
 
   has_many :memberships, dependent: :destroy
   has_many :users, through: :memberships
+  has_one :subscription, dependent: :destroy
+  has_one :plan, through: :subscription
+
+  delegate :on_trial?, :trial_days_remaining, :can_create_project?, :can_invite_user?, to: :subscription, allow_nil: false
 
   validates :name, presence: true
   validates :subdomain, presence: true,
@@ -20,15 +24,29 @@ class Organization < ApplicationRecord
 
   before_validation :normalize_subdomain
 
+  def projects
+    ActsAsTenant.with_tenant(self) do
+      Project.all
+    end
+  end
+
   private
 
   def normalize_subdomain
     self.subdomain = subdomain.to_s.downcase.strip
   end
 
-  def projects
-    ActsAsTenant.with_tenant(self) do
-      Project.all
-    end
+  def subscribed?
+    subscription.present? && subscription.active_subscription?
+  end
+
+  def free_plan?
+    plan&.free? || subscription.nil?
+  end
+
+  def can_access_feature?(feature_name)
+    return false unless subscribed?
+
+    plan.feature_enabled?(feature_name)
   end
 end

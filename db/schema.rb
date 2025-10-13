@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_10_12_111900) do
+ActiveRecord::Schema[7.2].define(version: 2025_10_13_114708) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -33,6 +33,23 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_12_111900) do
     t.index ["subdomain"], name: "index_organizations_on_subdomain", unique: true
   end
 
+  create_table "plans", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "slug", null: false
+    t.integer "price_cents", default: 0, null: false
+    t.string "interval", default: "month", null: false
+    t.jsonb "features", default: {}
+    t.boolean "api_access", default: false
+    t.boolean "priority_support", default: false
+    t.integer "max_projects"
+    t.integer "max_users"
+    t.integer "max_storage_mb"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["price_cents"], name: "index_plans_on_price_cents"
+    t.index ["slug"], name: "index_plans_on_slug", unique: true
+  end
+
   create_table "projects", force: :cascade do |t|
     t.bigint "organization_id", null: false
     t.string "name", null: false
@@ -42,6 +59,26 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_12_111900) do
     t.datetime "updated_at", null: false
     t.index ["organization_id", "name"], name: "index_projects_on_organization_id_and_name"
     t.index ["organization_id"], name: "index_projects_on_organization_id"
+  end
+
+  create_table "subscriptions", force: :cascade do |t|
+    t.bigint "organization_id", null: false
+    t.bigint "plan_id", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "trial_ends_at"
+    t.datetime "current_period_start"
+    t.datetime "current_period_end"
+    t.datetime "canceled_at"
+    t.text "cancellation_reason"
+    t.string "stripe_subscription_id"
+    t.string "stripe_customer_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["organization_id", "status"], name: "index_subscriptions_on_organization_id_and_status"
+    t.index ["organization_id"], name: "index_subscriptions_on_organization_id"
+    t.index ["plan_id"], name: "index_subscriptions_on_plan_id"
+    t.index ["status"], name: "index_subscriptions_on_status"
+    t.index ["stripe_subscription_id"], name: "index_subscriptions_on_stripe_subscription_id", unique: true
   end
 
   create_table "tasks", force: :cascade do |t|
@@ -74,6 +111,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_12_111900) do
   add_foreign_key "memberships", "organizations"
   add_foreign_key "memberships", "users"
   add_foreign_key "projects", "organizations"
+  add_foreign_key "subscriptions", "organizations"
+  add_foreign_key "subscriptions", "plans"
   add_foreign_key "tasks", "organizations"
   add_foreign_key "tasks", "projects"
 end
