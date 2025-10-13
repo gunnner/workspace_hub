@@ -2,8 +2,8 @@ require 'rails_helper'
 
 RSpec.describe 'Api::V1::Tasks', type: :request do
   let(:organization) { create(:organization, subdomain: 'testorg') }
-  let(:project) { create(:project, organization: organization) }
-  let(:headers) { { 'Host' => 'testorg.localhost' } }
+  let(:project)      { create(:project, organization: organization) }
+  let(:headers)      { { 'Host' => 'testorg.localhost' } }
 
   before do
     ActsAsTenant.current_tenant = organization

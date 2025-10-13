@@ -25,4 +25,10 @@ class Organization < ApplicationRecord
   def normalize_subdomain
     self.subdomain = subdomain.to_s.downcase.strip
   end
+
+  def projects
+    ActsAsTenant.with_tenant(self) do
+      Project.all
+    end
+  end
 end

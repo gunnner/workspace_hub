@@ -2,9 +2,9 @@ class CreateProjects < ActiveRecord::Migration[7.2]
   def change
     create_table :projects do |t|
       t.references :organization, null: false, foreign_key: true, index: true
-      t.string     :name, null: false
+      t.string     :name,         null: false
+      t.integer    :status,       null: false, default: 0
       t.text       :description
-      t.integer    :status, default: 0, null: false
 
       t.timestamps
     end

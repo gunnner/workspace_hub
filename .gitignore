@@ -44,3 +44,8 @@ docker-compose.override.yml
 
 # Rubymine files
 .idea
+
+# vscode
+.vscode/*
+.vscode/settings.json 
+.vscode/extensions.json

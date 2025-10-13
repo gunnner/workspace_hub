@@ -1,11 +1,11 @@
 class CreateTasks < ActiveRecord::Migration[7.2]
   def up
     create_table :tasks do |t|
-      t.references :project, null: false, foreign_key: true, index: true
+      t.references :project,      null: false, foreign_key: true, index: true
       t.references :organization, null: false, foreign_key: true, index: true
-      t.string     :title, null: false
+      t.integer    :status,       null: false, default: 0
+      t.string     :title,        null: false
       t.text       :description
-      t.integer    :status, default: 0, null: false
       t.datetime   :completed_at
 
       t.timestamps
