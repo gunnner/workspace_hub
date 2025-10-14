@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_10_13_114708) do
+ActiveRecord::Schema[7.2].define(version: 2025_10_14_130912) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -46,6 +46,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_13_114708) do
     t.integer "max_storage_mb"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "archived", default: false, null: false
+    t.index ["archived"], name: "index_plans_on_archived"
     t.index ["price_cents"], name: "index_plans_on_price_cents"
     t.index ["slug"], name: "index_plans_on_slug", unique: true
   end

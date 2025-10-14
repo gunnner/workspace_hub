@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :plan do
-    name             { 'Basic Plan' }
+    sequence(:name)  { |n| "Plan #{n}" }
     slug             { name.parameterize }
     price_cents      { 2_000 }
     interval         { 'month' }
@@ -10,11 +10,13 @@ FactoryBot.define do
     max_storage_mb   { 1_000 }
     api_access       { false }
     priority_support { false }
+    archived         { false }
 
     trait :free do
-      name             { 'Free Plan' }
-      slug             { 'free' }
+      name             { 'Free Plan Test' }
+      slug             { 'free-test' }
       price_cents      { 0 }
+      interval         { 'month' }
       max_projects     { 3 }
       max_users        { 1 }
       max_storage_mb   { 100 }
@@ -23,9 +25,10 @@ FactoryBot.define do
     end
 
     trait :pro do
-      name             { 'Pro Plan' }
+      sequence(:name)  { |n| "Pro Plan #{n}" }
       slug             { 'pro' }
       price_cents      { 5_000 }
+      interval         { 'month' }
       max_projects     { nil }
       max_users        { nil }
       max_storage_mb   { 10_000 }
@@ -36,6 +39,10 @@ FactoryBot.define do
     trait :yearly do
       interval    { 'year' }
       price_cents { 20_000 }
+    end
+
+    trait :archived do
+      archived { true }
     end
   end
 end

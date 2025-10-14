@@ -18,11 +18,16 @@ RSpec.describe Plan, type: :model do
 
   describe 'scopes' do
     it 'orders by price with by_price scope' do
-      expensive = create(:plan, :pro, price_cents: 10_000)
-      cheap     = create(:plan, :free, price_cents: 0)
-      medium    = create(:plan, price_cents: 5_000)
+      free_plan  = Plan.find_by!(slug: 'free')
+      basic_plan = Plan.find_by!(slug: 'basic')
+      pro_plan   = Plan.find_by!(slug: 'pro')
+      expensive  = create(:plan, name: 'Expensive Plan', slug: 'expensive', price_cents: 10_000)
+      plans      = Plan.by_price
 
-      expect(Plan.by_price).to eq([ cheap, medium, expensive ])
+      expect(plans.first).to  eq(free_plan)
+      expect(plans.second).to eq(basic_plan)
+      expect(plans.third).to  eq(pro_plan)
+      expect(plans.last).to   eq(expensive)
     end
   end
 

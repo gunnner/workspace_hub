@@ -2,16 +2,16 @@ class Organization < ApplicationRecord
   RESERVED_SUBDOMAINS = %w[
     www admin api app blog help support mail ftp webmail localhost staging production test development docs status dashboard
   ].freeze
+  FREE_PLAN_SLUG = 'free'.freeze
 
   has_many :memberships, dependent: :destroy
   has_many :users, through: :memberships
   has_one :subscription, dependent: :destroy
   has_one :plan, through: :subscription
 
-  delegate :on_trial?, :trial_days_remaining, :can_create_project?, :can_invite_user?, to: :subscription, allow_nil: false
-
   validates :name, presence: true
-  validates :subdomain, presence: true,
+  validates :subdomain,
+            presence: true,
             uniqueness: { case_sensitive: false },
             format: {
               with: /\A[a-z0-9-]+\z/,
@@ -23,17 +23,27 @@ class Organization < ApplicationRecord
             }
 
   before_validation :normalize_subdomain
+  after_create :create_free_subscription, unless: :subscription_exists?
 
-  def projects
-    ActsAsTenant.with_tenant(self) do
-      Project.all
-    end
+
+  def on_trial?
+    subscription&.on_trial? || false
   end
 
-  private
+  def trial_days_remaining
+    subscription&.trial_days_remaining || 0
+  end
 
-  def normalize_subdomain
-    self.subdomain = subdomain.to_s.downcase.strip
+  def can_create_project?
+    return false unless subscription
+
+    subscription.can_create_project?
+  end
+
+  def can_invite_user?
+    return false unless subscription
+
+    subscription.can_invite_user?
   end
 
   def subscribed?
@@ -48,5 +58,34 @@ class Organization < ApplicationRecord
     return false unless subscribed?
 
     plan.feature_enabled?(feature_name)
+  end
+
+  def projects
+    ActsAsTenant.with_tenant(self) do
+      Project.all
+    end
+  end
+
+  def projects_count
+    projects.count
+  end
+
+  private
+
+  def normalize_subdomain
+    self.subdomain = subdomain.to_s.downcase.strip
+  end
+
+  def subscription_exists?
+    subscription.present?
+  end
+
+  def create_free_subscription
+    free_plan = Plan.active.find_by(slug: FREE_PLAN_SLUG)
+    raise StandardError, "Free plan (#{FREE_PLAN_SLUG}) not found!" unless free_plan
+
+    create_subscription!(plan: free_plan, status: :active)
+  rescue ActiveRecord::RecordInvalid => e
+    raise e
   end
 end

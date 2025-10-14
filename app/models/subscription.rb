@@ -10,15 +10,17 @@ class Subscription < ApplicationRecord
     unpaid:   4
   }.freeze
 
-  validates :organization, presence: true
-  validates :plan,         presence: true
-  validates :status,       presence: true
+  validates :status, presence: true
+  validate :only_one_active_subscription, on: :create
 
   scope :active_or_trialing, -> { where(status: %i[active trialing]) }
-  scope :expiring_soon, -> { where('current_period_end < ?', 7.days.from_now) }
+  scope :expiring_soon,      -> { where('current_period_end < ?', 7.days.from_now) }
+  scope :churned,            -> { where(status: :canceled) }
+  scope :revenue_generating, -> { joins(:plan).where('plans.price_cents > 0').where(status: %i[active trialing]) }
+  scope :by_plan,            ->(plan) { where(plan: plan) }
 
-  before_create :set_trial_period, if: :plan_has_trial?
-  before_create :set_billing_period
+  before_validation :set_trial_period,   on: :create
+  before_validation :set_billing_period, on: :create
 
   def on_trial?
     trialing? && trial_ends_at.present? && trial_ends_at > Time.current
@@ -61,48 +63,63 @@ class Subscription < ApplicationRecord
   end
 
   def reactivate!
-    return false if canceled_at.blank?
+    return false unless can_reactivate?
 
     update!(
       status: :active,
       canceled_at: nil,
-      cancellation_reason: nil
+      cancellation_reason: nil,
+      current_period_end: calculate_period_end
     )
   end
 
-  def withing_projects_limits?(current_count)
+  def can_reactivate?
+    canceled? && canceled_at.present? && current_period_end > Time.current
+  end
+
+  def within_project_limit?(current_count)
     plan.unlimited_projects? || current_count < plan.max_projects
   end
 
-  def within_users_limits?(current_count)
+  def within_user_limit?(current_count)
     plan.unlimited_users? || current_count < plan.max_users
   end
 
   def can_create_project?
-    withing_projects_limits?(organization.projects.count)
+    within_project_limit?(organization.projects_count)
   end
 
-  def can_invite_users?
-    within_users_limits?(organization.user.count)
+  def can_invite_user?
+    within_user_limit?(organization.users.count)
   end
 
   private
 
-  def plan_has_trial?
-    !plan.free?
+  def only_one_active_subscription
+    return unless organization.present?
+    return if organization.subscription.nil?
+    return if organization.subscription.id.eql?(id)
+
+    errors.add(:base, 'Organization already has a subscription') if organization.subscription.persisted? && organization.subscription.id != id
   end
 
   def set_trial_period
+    return if plan.nil? || plan.free? || trial_ends_at.present?
+
     self.status = :trialing
     self.trial_ends_at = 14.days.from_now
   end
 
   def set_billing_period
+    return if plan.nil?
+
     self.current_period_start ||= Time.current
-    self.current_period_end   ||= define_billing_period_end
+    self.current_period_end   ||= calculate_period_end
   end
 
-  def define_billing_period_end
+  def calculate_period_end
+    return nil if plan.free?
+
     plan.monthly? ? 1.month.from_now
                   : 1.year.from_now
   end

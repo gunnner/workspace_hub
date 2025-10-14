@@ -50,4 +50,37 @@ RSpec.describe Organization, type: :model do
       end
     end
   end
+
+  describe 'subscription creation' do
+    it 'creates free subscription after organization creation' do
+      org = create(:organization)
+
+      expect(org.subscription).to be_present
+      expect(org.subscription.plan.slug).to eq('free')
+      expect(org.subscription.active?).to be true
+    end
+
+    it 'raises error if free plan not found' do
+      Plan.destroy_all
+
+      expect { create(:organization) }.to raise_error(StandardError, /Free plan.*not found/)
+    end
+  end
+
+  describe 'subscription management' do
+    it 'creates free subscription on organization creation' do
+      org = create(:organization)
+
+      expect(org.subscription).to be_present
+      expect(org.subscription.plan.slug).to eq('free')
+      expect(org.subscription.active?).to be true
+    end
+
+    it 'delegates subscription methods' do
+      org = create(:organization)
+
+      expect(org).to respond_to(:on_trial?)
+      expect(org).to respond_to(:can_create_project?)
+    end
+  end
 end

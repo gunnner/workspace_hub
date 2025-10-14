@@ -2,8 +2,6 @@ require 'rails_helper'
 
 RSpec.describe Subscription, type: :model do
   describe 'validations' do
-    it { should validate_presence_of(:organization) }
-    it { should validate_presence_of(:plan) }
     it { should validate_presence_of(:status) }
   end
 
@@ -94,7 +92,7 @@ RSpec.describe Subscription, type: :model do
     end
 
     it 'allows unlimited projects for pro plan' do
-      pro_plan = create(:plan, :pro, max_projects: nil)
+      pro_plan = Plan.find_by!(slug: 'pro')
       pro_subscription = create(:subscription, organization: organization, plan: pro_plan)
 
       create_list(:project, 101, organization: organization)
@@ -112,7 +110,7 @@ RSpec.describe Subscription, type: :model do
     end
 
     it 'does not set trial for free plans' do
-      plan = create(:plan, :free)
+      plan = Plan.find_by!(slug: 'free')
       subscription = create(:subscription, plan: plan, status: :active)
 
       expect(subscription.trial_ends_at).to be_nil
@@ -123,6 +121,41 @@ RSpec.describe Subscription, type: :model do
 
       expect(subscription.current_period_start).to be_present
       expect(subscription.current_period_end).to   be_present
+    end
+  end
+
+  describe 'edge cases' do
+    it 'prevents reactivation after period ended' do
+      subscription = create(:subscription, :canceled)
+      subscription.update_column(:current_period_end, 1.day.ago)
+
+      expect(subscription.reactivate!).to be false
+    end
+
+    it 'handles missing plan gracefully' do
+      subscription = build(:subscription, plan: nil)
+      expect(subscription).to be_invalid
+    end
+
+    it 'calculates correct renewal date for yearly plans' do
+      organization = create(:organization)
+      # We need to destroy the free subscription created by organization's after_create callback to test yearly plans
+      organization.subscription.destroy!
+
+      plan = create(:plan,
+        name: 'Yearly Test Plan',
+        slug: 'yearly-unique',
+        price_cents: 50_000,
+        interval: 'year'
+      )
+
+      subscription = Subscription.create!(
+        organization: organization,
+        plan: plan,
+        status: :active
+      )
+
+      expect(subscription.current_period_end).to be_within(1.minute).of(1.year.from_now)
     end
   end
 end
