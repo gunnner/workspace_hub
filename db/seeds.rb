@@ -15,7 +15,8 @@ seeds_file = Rails.root.join('db', 'seeds', "#{Rails.env}.rb")
 if File.exist?(seeds_file)
   load seeds_file
 else
-  puts 'Loading default plans...'
+  puts 'Loading default data...'
+  puts 'Creating plans...'
 
   Plan.destroy_all
 
@@ -70,5 +71,57 @@ else
     puts "#{plan_data[:name]}"
   end
 
-  puts "Seeded #{Plan.count} plans"
+  puts 'Creating users and organizations...'
+
+  owner = User.create!(
+    email: 'owner@example.com',
+    password: 'password123',
+    password_confirmation: 'password123',
+    first_name: 'John',
+    last_name: 'Owner'
+  )
+  puts "Owner: #{owner.email}"
+
+  admin = User.create!(
+    email: 'admin@example.com',
+    password: 'password123',
+    password_confirmation: 'password123',
+    first_name: 'Jane',
+    last_name: 'Admin'
+  )
+  puts "Admin: #{admin.email}"
+
+  member = User.create!(
+    email: 'member@example.com',
+    password: 'password123',
+    password_confirmation: 'password123',
+    first_name: 'Bob',
+    last_name: 'Member'
+  )
+  puts "Member: #{member.email}"
+
+  viewer = User.create!(
+    email: 'viewer@example.com',
+    password: 'password123',
+    password_confirmation: 'password123',
+    first_name: 'Alice',
+    last_name: 'Viewer'
+  )
+  puts "Viewer: #{viewer.email}"
+
+  # Organization
+  org = Organization.create!(
+    name: 'Umbrella Corporation',
+    subdomain: 'umbrella'
+  )
+  puts "Organization: #{org.name}"
+
+  # Memberships
+  Membership.create!(user: owner, organization: org, role: :owner)
+  Membership.create!(user: admin, organization: org, role: :admin)
+  Membership.create!(user: member, organization: org, role: :member)
+  Membership.create!(user: viewer, organization: org, role: :viewer)
+  puts "Created 4 memberships"
+
+  puts "Seeded #{Plan.count} plans, #{User.count} users, #{Organization.count} organizations"
 end

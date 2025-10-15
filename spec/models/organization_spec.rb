@@ -61,7 +61,7 @@ RSpec.describe Organization, type: :model do
     end
 
     it 'raises error if free plan not found' do
-      Plan.destroy_all
+      allow(Plan).to receive_message_chain(:active, :find_by).and_return(nil)
 
       expect { create(:organization) }.to raise_error(StandardError, /Free plan.*not found/)
     end

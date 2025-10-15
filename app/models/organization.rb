@@ -70,6 +70,40 @@ class Organization < ApplicationRecord
     projects.count
   end
 
+  def add_user(user, role: :member)
+    memberships.create!(user: user, role: role)
+  end
+
+  def remove_user(user)
+    memberships.find_by(user: user)&.destroy
+  end
+
+  def owners
+    user.joins(:memberships).where(memberships: { role: :owner })
+  end
+
+  def admins
+    users.joins(:memberships).where(memberships: { role: :admin })
+  end
+
+  def members
+    users.joins(:memberships).where(memberships: { role: :member })
+  end
+
+  def viewers
+    users.joins(:memberships).where(memberships: { role: :viewer })
+  end
+
+  def can_add_user?
+    return true if subscription.nil?
+
+    subscription.can_invite_user?
+  end
+
+  def user_count
+    users.count
+  end
+
   private
 
   def normalize_subdomain
