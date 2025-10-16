@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_10_14_170313) do
+ActiveRecord::Schema[7.2].define(version: 2025_10_15_091704) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -59,6 +59,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_14_170313) do
     t.text "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "created_by_id"
+    t.index ["created_by_id"], name: "index_projects_on_created_by_id"
     t.index ["organization_id", "name"], name: "index_projects_on_organization_id_and_name"
     t.index ["organization_id"], name: "index_projects_on_organization_id"
   end
@@ -123,6 +125,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_14_170313) do
   add_foreign_key "memberships", "organizations"
   add_foreign_key "memberships", "users"
   add_foreign_key "projects", "organizations"
+  add_foreign_key "projects", "users", column: "created_by_id"
   add_foreign_key "subscriptions", "organizations"
   add_foreign_key "subscriptions", "plans"
   add_foreign_key "tasks", "organizations"

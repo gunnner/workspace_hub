@@ -1,7 +1,8 @@
 class Project < ApplicationRecord
   acts_as_tenant(:organization)
 
-  belongs_to :organization, optional: false
+  belongs_to :organization
+  belongs_to :created_by, class_name: 'User', optional: true
   has_many   :tasks, dependent: :destroy
 
   enum :status, {

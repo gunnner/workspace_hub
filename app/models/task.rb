@@ -1,8 +1,8 @@
 class Task < ApplicationRecord
   acts_as_tenant(:organization)
 
-  belongs_to :project,      optional: false
-  belongs_to :organization, optional: false
+  belongs_to :project
+  belongs_to :organization
 
   enum :status, {
     todo:        0,

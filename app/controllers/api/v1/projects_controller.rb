@@ -3,20 +3,24 @@ class Api::V1::ProjectsController < ApiController
 
   # GET /api/v1/projects
   def index
-    @projects = Project.all.recent
+    @projects = policy_scope(Project).recent
 
     render json: @projects, status: :ok
   end
 
   # GET /api/v1/projects/:id
   def show
+    authorize @project
+
     render json: @project, status: :ok
   end
 
   # POST /api/v1/projects
   def create
-    @project = Project.new(project_params)
-    @project.organization = current_organization
+    @project = current_organization.projects.new(project_params)
+    @project.created_by = current_user
+
+    authorize @project
     return render json: @project, status: :created if @project.save
 
     render json: { errors: @project.errors.full_messages }, status: :unprocessable_entity
@@ -24,6 +28,7 @@ class Api::V1::ProjectsController < ApiController
 
   # PATCH/PUT /api/v1/projects/:id
   def update
+    authorize @project
     return render json: @project, status: :ok if @project.update(project_params)
 
     render json: { errors: @project.errors.full_messages }, status: :unprocessable_entity
@@ -31,15 +36,16 @@ class Api::V1::ProjectsController < ApiController
 
   # DELETE /api/v1/projects/:id
   def destroy
-    @project.destroy!
+    authorize @project
 
+    @project.destroy!
     head :no_content
   end
 
   private
 
   def set_project
-    @project = Project.find(params[:id])
+    @project = current_organization.projects.find(params[:id])
   end
 
   def project_params
