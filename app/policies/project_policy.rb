@@ -33,6 +33,7 @@ class ProjectPolicy < ApplicationPolicy
 
   def destroy?
     return true if user_membership&.owner? || user_membership&.admin?
+
     user_membership&.can_delete_project?(record)
   end
 

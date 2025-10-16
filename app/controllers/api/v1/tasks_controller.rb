@@ -20,7 +20,6 @@ class Api::V1::TasksController < ApiController
   # POST /api/v1/projects/:project_id/tasks
   def create
     @task = @project.tasks.build(task_params)
-
     authorize @task
     return render json: @task, status: :created if @task.save
 
@@ -38,7 +37,6 @@ class Api::V1::TasksController < ApiController
   # DELETE /api/v1/projects/:project_id/tasks/:id
   def destroy
     authorize @task
-
     @task.destroy!
 
     head :no_content

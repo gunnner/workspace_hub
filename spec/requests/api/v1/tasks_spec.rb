@@ -24,7 +24,7 @@ RSpec.describe 'Api::V1::Tasks', type: :request do
   describe 'GET /api/v1/projects/:project_id/tasks' do
     it 'returns all tasks for the project' do
       ActsAsTenant.current_tenant = organization
-      # debugger
+
       create_list(:task, 3, project: project)
       get api_v1_project_tasks_path(project), headers: headers
 
