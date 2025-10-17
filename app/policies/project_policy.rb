@@ -40,6 +40,6 @@ class ProjectPolicy < ApplicationPolicy
   private
 
   def user_membership
-    @user_membership ||= user.memberships.find_by(organization: record.organization)
+    @user_membership ||= user&.memberships&.find_by(organization: record.organization)
   end
 end

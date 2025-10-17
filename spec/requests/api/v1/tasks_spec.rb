@@ -45,8 +45,8 @@ RSpec.describe 'Api::V1::Tasks', type: :request do
     it 'does not return tasks from other projects' do
       ActsAsTenant.current_tenant = organization
       other_project = create(:project, organization: organization)
-      task1         = create(:task, project: project, title: 'Task 1')
-      task2         = create(:task, project: other_project, title: 'Task 2')
+      create(:task, project: project, title: 'Task 1')
+      create(:task, project: other_project, title: 'Task 2')
 
       get api_v1_project_tasks_path(project), headers: headers
 

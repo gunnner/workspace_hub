@@ -81,7 +81,7 @@ RSpec.describe 'Api::V1::Projects', type: :request do
 
     context 'with valid params' do
       it 'creates a new project' do
-        expect {post api_v1_projects_path, params: valid_attributes.to_json, headers: headers }.to change(Project, :count).by(1)
+        expect { post api_v1_projects_path, params: valid_attributes.to_json, headers: headers }.to change(Project, :count).by(1)
 
         expect(response).to have_http_status(:created)
         json = JSON.parse(response.body)
