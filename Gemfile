@@ -8,6 +8,7 @@ gem 'devise'
 gem 'importmap-rails'
 gem 'jbuilder'
 # gem "kredis"
+gem 'ostruct'
 gem 'pundit'
 gem 'pg', '~> 1.1'
 gem 'puma', '>= 5.0'
@@ -38,5 +39,3 @@ end
 group :development do
   gem 'web-console'
 end
-
-gem "ostruct", "~> 0.6.3"
