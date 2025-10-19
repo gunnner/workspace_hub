@@ -11,8 +11,11 @@ gem 'jbuilder'
 gem 'pundit'
 gem 'pg', '~> 1.1'
 gem 'puma', '>= 5.0'
+gem 'rack-cors'
 gem 'rails', '~> 7.2.2', '>= 7.2.2.2'
 # gem "redis", ">= 4.0.1"
+gem 'rswag-api'
+gem 'rswag-ui'
 gem 'sprockets-rails'
 gem 'stimulus-rails'
 gem 'tailwindcss-rails'
@@ -27,6 +30,7 @@ group :development, :test do
   gem 'factory_bot_rails'
   gem 'faker'
   gem 'rspec-rails'
+  gem 'rswag-specs'
   gem 'rubocop-rails-omakase', require: false
   gem 'shoulda-matchers'
 end

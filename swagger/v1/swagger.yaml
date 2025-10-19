@@ -1,0 +1,505 @@
+---
+openapi: 3.0.1
+info:
+  title: Workspace Hub API V1
+  version: v1
+  description: API documentation for Workspace Hub - a multi-tenant project management
+    platform
+  contact:
+    name: API Support
+    url: https://github.com/gunnner/workspace_hub
+paths:
+  "/api/v1/projects":
+    get:
+      summary: List all projects
+      tags:
+      - Projects
+      description: Returns all projects for the current organization
+      security:
+      - bearer_auth: []
+      parameters:
+      - name: Host
+        in: header
+        type: string
+        required: true
+        description: Organization subdomain (e.g., testorg.localhost)
+        schema:
+          type: string
+          default: testorg.localhost
+      responses:
+        '200':
+          description: successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/project"
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+    post:
+      summary: Create a project
+      tags:
+      - Projects
+      description: Creates a new project
+      security:
+      - bearer_auth: []
+      parameters:
+      - name: Host
+        in: header
+        type: string
+        required: true
+        description: Organization subdomain
+        schema:
+          type: string
+          default: testorg.localhost
+      responses:
+        '201':
+          description: created
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/project"
+        '422':
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/validation_errors"
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                project:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: New Project
+                    description:
+                      type: string
+                      example: Project description
+                    status:
+                      type: string
+                      enum:
+                      - active
+                      - archived
+                      - completed
+                      example: active
+                  required:
+                  - name
+  "/api/v1/projects/{id}":
+    parameters:
+    - name: id
+      in: path
+      description: Project ID
+      required: true
+      schema:
+        type: integer
+    - name: Host
+      in: header
+      type: string
+      required: true
+      description: Organization subdomain
+      schema:
+        type: string
+        default: testorg.localhost
+    get:
+      summary: Show a project
+      tags:
+      - Projects
+      security:
+      - bearer_auth: []
+      responses:
+        '200':
+          description: successful
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/project"
+        '404':
+          description: not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+    patch:
+      summary: Update a project
+      tags:
+      - Projects
+      security:
+      - bearer_auth: []
+      parameters: []
+      responses:
+        '200':
+          description: successful
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/project"
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                project:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    description:
+                      type: string
+                    status:
+                      type: string
+                      enum:
+                      - active
+                      - archived
+                      - completed
+    delete:
+      summary: Delete a project
+      tags:
+      - Projects
+      security:
+      - bearer_auth: []
+      responses:
+        '204':
+          description: no content
+        '403':
+          description: forbidden
+  "/api/v1/projects/{project_id}/tasks":
+    parameters:
+    - name: project_id
+      in: path
+      description: Project ID
+      required: true
+      schema:
+        type: integer
+    - name: Host
+      in: header
+      type: string
+      required: true
+      description: Organization subdomain
+      schema:
+        type: string
+        default: testorg.localhost
+    get:
+      summary: List all tasks for a project
+      tags:
+      - Tasks
+      description: Returns all tasks for the specified project
+      security:
+      - bearer_auth: []
+      responses:
+        '200':
+          description: successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/task"
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+        '404':
+          description: project not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+    post:
+      summary: Create a task
+      tags:
+      - Tasks
+      description: Creates a new task in the specified project
+      security:
+      - bearer_auth: []
+      parameters: []
+      responses:
+        '201':
+          description: created
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/task"
+        '422':
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/validation_errors"
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                task:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                      example: New Task
+                    description:
+                      type: string
+                      example: Task description
+                    status:
+                      type: string
+                      enum:
+                      - todo
+                      - in_progress
+                      - completed
+                      example: todo
+                  required:
+                  - title
+  "/api/v1/projects/{project_id}/tasks/{id}":
+    parameters:
+    - name: project_id
+      in: path
+      description: Project ID
+      required: true
+      schema:
+        type: integer
+    - name: id
+      in: path
+      description: Task ID
+      required: true
+      schema:
+        type: integer
+    - name: Host
+      in: header
+      type: string
+      required: true
+      description: Organization subdomain
+      schema:
+        type: string
+        default: testorg.localhost
+    get:
+      summary: Show a task
+      tags:
+      - Tasks
+      description: Returns a specific task
+      security:
+      - bearer_auth: []
+      responses:
+        '200':
+          description: successful
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/task"
+        '404':
+          description: not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+    patch:
+      summary: Update a task
+      tags:
+      - Tasks
+      description: Updates an existing task
+      security:
+      - bearer_auth: []
+      parameters: []
+      responses:
+        '200':
+          description: successful
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/task"
+        '422':
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/validation_errors"
+        '403':
+          description: forbidden
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/error"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                task:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    description:
+                      type: string
+                    status:
+                      type: string
+                      enum:
+                      - todo
+                      - in_progress
+                      - completed
+                    completed_at:
+                      type: string
+                      format: date-time
+    delete:
+      summary: Delete a task
+      tags:
+      - Tasks
+      description: Deletes a task
+      security:
+      - bearer_auth: []
+      responses:
+        '204':
+          description: no content
+        '403':
+          description: forbidden
+        '404':
+          description: not found
+servers:
+- url: http://{organization}.localhost:3000
+  description: Local development server
+  variables:
+    organization:
+      default: umbrella
+      description: Your organization subdomain
+- url: https://{organization}.yourdomain.com
+  description: Production server
+  variables:
+    organization:
+      default: demo
+      description: Your organization subdomain
+security:
+- bearer_auth: []
+components:
+  securitySchemes:
+    bearer_auth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Enter your API token (without "Bearer" prefix)
+  schemas:
+    project:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        organization_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: My Project
+        description:
+          type: string
+          example: Project description
+          nullable: true
+        status:
+          type: string
+          enum:
+          - active
+          - archived
+          - completed
+          example: active
+        created_by_id:
+          type: integer
+          example: 1
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - organization_id
+      - name
+      - status
+    task:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        project_id:
+          type: integer
+          example: 1
+        organization_id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: My Task
+        description:
+          type: string
+          example: Task description
+          nullable: true
+        status:
+          type: string
+          enum:
+          - todo
+          - in_progress
+          - completed
+          example: todo
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - project_id
+      - organization_id
+      - title
+      - status
+    error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Record not found
+    validation_errors:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: string
+          example:
+          - Name can't be blank
