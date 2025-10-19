@@ -12,6 +12,7 @@ gem 'ostruct'
 gem 'pundit'
 gem 'pg', '~> 1.1'
 gem 'puma', '>= 5.0'
+gem 'rack-attack'
 gem 'rack-cors'
 gem 'rails', '~> 7.2.2', '>= 7.2.2.2'
 # gem "redis", ">= 4.0.1"

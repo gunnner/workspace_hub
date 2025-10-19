@@ -11,6 +11,8 @@ require 'rspec/rails'
 require 'database_cleaner/active_record'
 require 'pundit/rspec'
 
+Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
+
 # Add additional requires below this line. Rails is not loaded until this point!
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
@@ -60,6 +62,7 @@ RSpec.configure do |config|
   end
 
   config.before(:each) do
+    Rack::Attack.cache.store.clear if defined?(Rack::Attack)
     DatabaseCleaner.strategy = :transaction
     DatabaseCleaner.start
     ActsAsTenant.current_tenant = nil

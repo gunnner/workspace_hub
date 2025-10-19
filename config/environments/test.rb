@@ -23,7 +23,7 @@ Rails.application.configure do
   # Show full error reports and disable caching.
   config.consider_all_requests_local = true
   config.action_controller.perform_caching = false
-  config.cache_store = :null_store
+  config.cache_store = :memory_store, { size: 64.megabytes }
 
   # Render exception templates for rescuable exceptions and raise for other exceptions.
   config.action_dispatch.show_exceptions = :rescuable
@@ -64,4 +64,7 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
+
+  # Enable Rack::Attack in test environment
+  config.middleware.use Rack::Attack
 end

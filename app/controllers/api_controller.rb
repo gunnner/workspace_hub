@@ -1,5 +1,6 @@
 class ApiController < ActionController::API
   include Pundit::Authorization
+  include RateLimitable
 
   before_action :verify_tenant
   before_action :authenticate_user!
