@@ -38,3 +38,5 @@ end
 group :development do
   gem 'web-console'
 end
+
+gem "ostruct", "~> 0.6.3"
