@@ -1,12 +1,13 @@
 class User < ApplicationRecord
-  # Include default devise modules. Others available are:
-  # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
+  include User::RansackWhitelist
+
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable,
          :trackable
 
   has_many :memberships, dependent: :destroy
   has_many :organizations, through: :memberships
+  has_many :projects, foreign_key: :created_by_id, dependent: :nullify
 
   validates :email,      presence: true, uniqueness: { case_sensitive: false }
   validates :first_name, presence: true

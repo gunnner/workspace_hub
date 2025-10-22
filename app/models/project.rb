@@ -1,4 +1,6 @@
 class Project < ApplicationRecord
+  include Project::RansackWhitelist
+
   acts_as_tenant(:organization)
 
   belongs_to :organization

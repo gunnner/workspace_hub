@@ -1,4 +1,6 @@
 class Plan < ApplicationRecord
+  include Plan::RansackWhitelist
+
   has_many :subscriptions, dependent: :restrict_with_error
   has_many :organizations, through: :subscriptions
 

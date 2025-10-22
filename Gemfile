@@ -1,5 +1,6 @@
 source 'https://rubygems.org'
 
+gem 'activeadmin'
 gem 'acts_as_tenant'
 # gem "bcrypt", "~> 3.1.7"
 gem 'bootsnap', require: false
@@ -18,6 +19,7 @@ gem 'rails', '~> 7.2.2', '>= 7.2.2.2'
 # gem "redis", ">= 4.0.1"
 gem 'rswag-api'
 gem 'rswag-ui'
+gem 'sassc-rails'
 gem 'sprockets-rails'
 gem 'stimulus-rails'
 gem 'tailwindcss-rails'

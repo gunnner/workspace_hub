@@ -1,4 +1,6 @@
 class Organization < ApplicationRecord
+  include Organization::RansackWhitelist
+
   RESERVED_SUBDOMAINS = %w[
     www admin api app blog help support mail ftp webmail localhost staging production test development docs status dashboard
   ].freeze

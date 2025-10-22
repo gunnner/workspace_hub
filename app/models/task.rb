@@ -1,4 +1,6 @@
 class Task < ApplicationRecord
+  include Task::RansackWhitelist
+
   acts_as_tenant(:organization)
 
   belongs_to :project
