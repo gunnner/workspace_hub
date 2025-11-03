@@ -127,6 +127,7 @@ RSpec.describe ProjectPolicy, type: :policy do
     let(:org2) { create(:organization) }
 
     before do
+      Task.delete_all
       Project.delete_all
       create(:membership, user: user, organization: org1, role: :member)
       ActsAsTenant.current_tenant = org1

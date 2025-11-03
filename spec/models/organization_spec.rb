@@ -53,7 +53,7 @@ RSpec.describe Organization, type: :model do
 
   describe 'subscription creation' do
     it 'creates free subscription after organization creation' do
-      org = create(:organization)
+      org = create(:organization, :with_subscription)
 
       expect(org.subscription).to be_present
       expect(org.subscription.plan.slug).to eq('free')
@@ -61,15 +61,16 @@ RSpec.describe Organization, type: :model do
     end
 
     it 'raises error if free plan not found' do
-      allow(Plan).to receive_message_chain(:active, :find_by).and_return(nil)
+      allow(Plan).to receive_message_chain(:active, :find_by).with(slug: 'free').and_return(nil)
+      org = Organization.new(name: 'Test Org', subdomain: 'test-unique')
 
-      expect { create(:organization) }.to raise_error(StandardError, /Free plan.*not found/)
+      expect { org.save! }.to raise_error(StandardError, /Free plan.*not found/)
     end
   end
 
   describe 'subscription management' do
     it 'creates free subscription on organization creation' do
-      org = create(:organization)
+      org = create(:organization, :with_subscription)
 
       expect(org.subscription).to be_present
       expect(org.subscription.plan.slug).to eq('free')
@@ -77,7 +78,7 @@ RSpec.describe Organization, type: :model do
     end
 
     it 'delegates subscription methods' do
-      org = create(:organization)
+      org = create(:organization, :with_subscription)
 
       expect(org).to respond_to(:on_trial?)
       expect(org).to respond_to(:can_create_project?)

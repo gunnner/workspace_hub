@@ -1,13 +1,13 @@
 require 'rails_helper'
 
 RSpec.describe 'Api::V1::Tasks', type: :request do
-  let(:organization) { create(:organization, subdomain: 'testorg') }
+  let(:organization) { create(:organization, :with_subscription, subdomain: 'testorg') }
   let(:user)         { create(:user) }
   let(:project)      { create(:project, organization: organization) }
   let(:api_token)    { user.api_token }
   let(:headers) do
     {
-      'Host' => 'testorg.localhost',
+      'Host'          => 'testorg.localhost',
       'Authorization' => "Bearer #{api_token}",
       'Content-Type'  => 'application/json'
     }
@@ -15,6 +15,7 @@ RSpec.describe 'Api::V1::Tasks', type: :request do
 
   before do
     create(:membership, user: user, organization: organization, role: :member)
+    ActsAsTenant.current_tenant = organization
   end
 
   after do
@@ -23,8 +24,6 @@ RSpec.describe 'Api::V1::Tasks', type: :request do
 
   describe 'GET /api/v1/projects/:project_id/tasks' do
     it 'returns all tasks for the project' do
-      ActsAsTenant.current_tenant = organization
-
       create_list(:task, 3, project: project)
       get api_v1_project_tasks_path(project), headers: headers
 
@@ -35,7 +34,6 @@ RSpec.describe 'Api::V1::Tasks', type: :request do
 
     context 'without authentication' do
       it 'returns unauthorized' do
-        ActsAsTenant.current_tenant = organization
         get api_v1_project_tasks_path(project), headers: { 'Host' => 'testorg.localhost' }
 
         expect(response).to have_http_status(:unauthorized)
@@ -43,7 +41,6 @@ RSpec.describe 'Api::V1::Tasks', type: :request do
     end
 
     it 'does not return tasks from other projects' do
-      ActsAsTenant.current_tenant = organization
       other_project = create(:project, organization: organization)
       create(:task, project: project, title: 'Task 1')
       create(:task, project: other_project, title: 'Task 2')
@@ -60,7 +57,6 @@ RSpec.describe 'Api::V1::Tasks', type: :request do
     let(:task) { create(:task, project: project) }
 
     it 'returns the task' do
-      ActsAsTenant.current_tenant = organization
       get api_v1_project_task_path(project, task), headers: headers
 
       expect(response).to have_http_status(:ok)
@@ -70,7 +66,6 @@ RSpec.describe 'Api::V1::Tasks', type: :request do
     end
 
     it 'returns 404 for task from another project' do
-      ActsAsTenant.current_tenant = organization
       other_project = create(:project, organization: organization)
       other_task    = create(:task, project: other_project)
       get api_v1_project_task_path(project, other_task), headers: headers
@@ -84,9 +79,10 @@ RSpec.describe 'Api::V1::Tasks', type: :request do
 
     context 'as member' do
       it 'creates a new task' do
-        ActsAsTenant.current_tenant = organization
+        initial_count = project.tasks.count
+        post api_v1_project_tasks_path(project), params: valid_attributes.to_json, headers: headers
 
-        expect { post api_v1_project_tasks_path(project), params: valid_attributes.to_json, headers: headers }.to change(Task, :count).by(1)
+        expect(project.tasks.count).to eq(initial_count + 1)
         expect(response).to have_http_status(:created)
       end
     end
@@ -97,7 +93,6 @@ RSpec.describe 'Api::V1::Tasks', type: :request do
       end
 
       it 'denies access' do
-        ActsAsTenant.current_tenant = organization
         post api_v1_project_tasks_path(project), params: valid_attributes.to_json, headers: headers
 
         expect(response).to have_http_status(:forbidden)
@@ -105,7 +100,6 @@ RSpec.describe 'Api::V1::Tasks', type: :request do
     end
 
     it 'returns errors for invalid attributes' do
-      ActsAsTenant.current_tenant = organization
       post api_v1_project_tasks_path(project), params: { task: { title: '' } }.to_json, headers: headers
 
       expect(response).to have_http_status(:unprocessable_entity)
@@ -118,7 +112,6 @@ RSpec.describe 'Api::V1::Tasks', type: :request do
     let(:task) { create(:task, project: project, title: 'Old Title') }
 
     it 'updates the task' do
-      ActsAsTenant.current_tenant = organization
       patch api_v1_project_task_path(project, task), params: { task: { title: 'New Title' } }.to_json, headers: headers
 
       expect(response).to have_http_status(:ok)
@@ -127,7 +120,6 @@ RSpec.describe 'Api::V1::Tasks', type: :request do
     end
 
     it 'returns errors for invalid updates' do
-      ActsAsTenant.current_tenant = organization
       patch api_v1_project_task_path(project, task), params: { task: { title: '' } }.to_json, headers: headers
 
       expect(response).to have_http_status(:unprocessable_entity)
@@ -135,28 +127,26 @@ RSpec.describe 'Api::V1::Tasks', type: :request do
   end
 
   describe 'DELETE /api/v1/projects/:project_id/tasks/:id' do
-    let!(:task) { create(:task, project: project) }
-
     it 'deletes the task' do
-      ActsAsTenant.current_tenant = organization
+      task_to_delete = create(:task, project: project)
+      initial_count = project.tasks.count
 
-      expect { delete api_v1_project_task_path(project, task), headers: headers }.to change(Task, :count).by(-1)
+      delete api_v1_project_task_path(project, task_to_delete), headers: headers
+
+      expect(project.tasks.count).to eq(initial_count - 1)
       expect(response).to have_http_status(:no_content)
     end
 
     it 'returns 404 for non-existent task' do
-      ActsAsTenant.current_tenant = organization
-        delete api_v1_project_task_path(project, 99999), headers: headers
+      delete api_v1_project_task_path(project, 99999), headers: headers
 
-        expect(response).to have_http_status(:not_found)
+      expect(response).to have_http_status(:not_found)
     end
   end
 
   describe 'tenant isolation in nested resources' do
     it 'prevents access to tasks from other tenants' do
-      ActsAsTenant.current_tenant = organization
-
-      other_org = create(:organization, subdomain: 'otherorg')
+      other_org = create(:organization, :with_subscription, subdomain: 'otherorg')
       other_project = ActsAsTenant.with_tenant(other_org) do
         create(:project, organization: other_org)
       end

@@ -22,6 +22,7 @@ gem 'rswag-ui'
 gem 'sassc-rails'
 gem 'sprockets-rails'
 gem 'stimulus-rails'
+gem 'stripe'
 gem 'tailwindcss-rails'
 gem 'turbo-rails'
 gem 'tzinfo-data', platforms: %i[ windows jruby ]

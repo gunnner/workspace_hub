@@ -1,0 +1,127 @@
+<div class="container mx-auto px-4 py-8">
+  <% if flash[:error] %>
+    <div class="bg-red-50 border-l-4 border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+      <strong class="font-bold">Error!</strong>
+      <span class="block sm:inline"><%= flash[:error] %></span>
+    </div>
+  <% end %>
+
+  <% if flash[:notice] %>
+    <div class="bg-green-50 border-l-4 border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+      <strong class="font-bold">Success!</strong>
+      <span class="block sm:inline"><%= flash[:notice] %></span>
+    </div>
+  <% end %>
+
+  <h1 class="text-3xl font-bold mb-8 text-gray-900">Billing & Subscription</h1>
+
+  <% if @subscription %>
+    <div class="bg-white shadow-md rounded-lg p-6 mb-8 border border-gray-200">
+      <h2 class="text-xl font-semibold mb-4 text-gray-800">Current Plan</h2>
+      
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <p class="text-2xl font-bold text-gray-900"><%= @plan.name %></p>
+          <p class="text-lg text-gray-600 mt-1"><%= @plan.display_price %></p>
+          <p class="text-sm text-gray-500 mt-3">
+            Status: 
+            <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold <%= @subscription.active_subscription? ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' %>">
+              <%= @subscription.status.humanize %>
+            </span>
+          </p>
+          
+          <% if @subscription.on_trial? %>
+            <p class="text-sm text-blue-600 mt-2 flex items-center">
+              <span class="mr-1">⏱</span>
+              Trial ends in <%= @subscription.trial_days_remaining %> days
+            </p>
+          <% end %>
+          
+          <% if @subscription.cancel_at_period_end? %>
+            <p class="text-sm text-orange-600 mt-2 flex items-center">
+              <span class="mr-1">⚠️</span>
+              Subscription will cancel on <%= @subscription.current_period_end.strftime('%B %d, %Y') %>
+            </p>
+          <% end %>
+        </div>
+        
+        <% if @subscription.stripe_customer_id %>
+          <%= link_to portal_billing_path, 
+              data: { turbo: false }, 
+              class: 'bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition-colors font-medium' do %>
+            Manage Subscription
+          <% end %>
+        <% end %>
+      </div>
+
+      <% if @subscription.current_period_end %>
+        <div class="mt-6 pt-4 border-t border-gray-200">
+          <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span class="text-gray-500">Current period ends:</span>
+              <p class="font-medium text-gray-900"><%= @subscription.current_period_end.strftime('%B %d, %Y') %></p>
+            </div>
+            <div>
+              <span class="text-gray-500">Days until renewal:</span>
+              <p class="font-medium text-gray-900"><%= @subscription.days_until_renewal %> days</p>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <h2 class="text-2xl font-bold mb-6 text-gray-900">Available Plans</h2>
+  
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <% @available_plans.each do |plan| %>
+      <div class="relative bg-white border-2 rounded-lg p-5 <%= @subscription&.plan_id == plan.id ? 'border-blue-600 shadow-lg' : 'border-gray-200 shadow' %> hover:shadow-lg transition-shadow">
+        <% if @subscription&.plan_id == plan.id %>
+          <div class="absolute -top-3 right-4 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+            CURRENT
+          </div>
+        <% end %>
+
+        <h3 class="text-xl font-bold mb-1 text-gray-900"><%= plan.name %></h3>
+        <p class="text-3xl font-bold mb-4 text-gray-900">
+          <%= plan.display_price %>
+        </p>
+        
+        <ul class="space-y-2.5 mb-6">
+          <li class="text-sm flex items-center text-gray-700">
+            <span class="text-green-500 mr-2 font-bold">✓</span>
+            <span><%= plan.unlimited_projects? ? 'Unlimited' : plan.max_projects %> Projects</span>
+          </li>
+          <li class="text-sm flex items-center text-gray-700">
+            <span class="text-green-500 mr-2 font-bold">✓</span>
+            <span><%= plan.unlimited_users? ? 'Unlimited' : plan.max_users %> Team Members</span>
+          </li>
+          <li class="text-sm flex items-center <%= plan.api_access ? 'text-gray-700' : 'text-gray-400' %>">
+            <span class="<%= plan.api_access ? 'text-green-500' : 'text-gray-300' %> mr-2 font-bold"><%= plan.api_access ? '✓' : '✗' %></span>
+            <span>API Access</span>
+          </li>
+          <li class="text-sm flex items-center <%= plan.priority_support ? 'text-gray-700' : 'text-gray-400' %>">
+            <span class="<%= plan.priority_support ? 'text-green-500' : 'text-gray-300' %> mr-2 font-bold"><%= plan.priority_support ? '✓' : '✗' %></span>
+            <span>Priority Support</span>
+          </li>
+        </ul>
+        
+        <% if @subscription&.plan_id == plan.id %>
+          <button disabled class="w-full bg-gray-200 text-gray-500 px-4 py-2.5 rounded-lg cursor-not-allowed font-medium">
+            Current Plan
+          </button>
+        <% elsif plan.free? %>
+          <div class="text-center text-sm text-gray-500 py-2.5 font-medium">
+            Default plan
+          </div>
+        <% else %>
+          <%= button_to 'Upgrade Now', 
+              checkout_billing_path(plan_id: plan.id), 
+              method: :post, 
+              data: { turbo: false },
+              class: 'w-full bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 transition-colors font-medium' %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -11,7 +11,16 @@ RSpec.describe Subscription, type: :model do
   end
 
   describe 'enums' do
-    it { should define_enum_for(:status).with_values(trialing: 0, active: 1, past_due: 2, canceled: 3, unpaid: 4) }
+    it { should define_enum_for(:status).with_values(
+      trialing:           0,
+      active:             1,
+      past_due:           2,
+      canceled:           3,
+      unpaid:             4,
+      incomplete:         5,
+      incomplete_expired: 6
+    )
+   }
   end
 
   describe 'trial period' do
@@ -138,22 +147,20 @@ RSpec.describe Subscription, type: :model do
     end
 
     it 'calculates correct renewal date for yearly plans' do
-      organization = create(:organization)
-      # We need to destroy the free subscription created by organization's after_create callback to test yearly plans
-      organization.subscription.destroy!
-
+      organization = create(:organization, :with_subscription)
       plan = create(:plan,
-        name: 'Yearly Test Plan',
-        slug: 'yearly-unique',
+        name:        'Yearly Test Plan',
+        slug:        'yearly-unique',
         price_cents: 50_000,
-        interval: 'year'
+        interval:    'year'
       )
 
-      subscription = Subscription.create!(
-        organization: organization,
-        plan: plan,
-        status: :active
-      )
+      subscription = organization.subscription
+      subscription.plan = plan
+      subscription.current_period_start = Time.current
+      subscription.current_period_end = nil
+      subscription.send(:set_billing_period)
+      subscription.save!
 
       expect(subscription.current_period_end).to be_within(1.minute).of(1.year.from_now)
     end

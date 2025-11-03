@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe 'Api::V1::Projects', type: :request do
-  let(:organization) { create(:organization, subdomain: 'testorg') }
+  let(:organization) { create(:organization, :with_subscription, subdomain: 'testorg') }
   let(:user)         { create(:user) }
   let(:api_token)    { user.api_token }
   let(:headers) do
@@ -32,7 +32,7 @@ RSpec.describe 'Api::V1::Projects', type: :request do
     end
 
     it 'does not return projects from other tenants' do
-      other_org = create(:organization)
+      other_org = create(:organization, :with_subscription)
       ActsAsTenant.with_tenant(other_org) do
         create(:project, organization: other_org)
       end
@@ -66,7 +66,7 @@ RSpec.describe 'Api::V1::Projects', type: :request do
     end
 
     it 'returns 404 for project from another tenant' do
-      other_org = create(:organization)
+      other_org = create(:organization, :with_subscription)
       other_project = ActsAsTenant.with_tenant(other_org) do
         create(:project, organization: other_org)
       end
@@ -81,8 +81,10 @@ RSpec.describe 'Api::V1::Projects', type: :request do
 
     context 'with valid params' do
       it 'creates a new project' do
-        expect { post api_v1_projects_path, params: valid_attributes.to_json, headers: headers }.to change(Project, :count).by(1)
+        initial_count = organization.projects.count
+        post api_v1_projects_path, params: valid_attributes.to_json, headers: headers
 
+        expect(organization.projects.count).to eq(initial_count + 1)
         expect(response).to have_http_status(:created)
         json = JSON.parse(response.body)
         expect(json['name']).to eq('New Project')
@@ -139,17 +141,21 @@ RSpec.describe 'Api::V1::Projects', type: :request do
   end
 
   describe 'DELETE /api/v1/projects/:id' do
-    let!(:project) { create(:project, organization: organization, created_by: user) }
-
     context 'as project creator' do
       it 'deletes the project' do
-        expect { delete api_v1_project_path(project), headers: headers }.to change(Project, :count).by(-1)
+        project_to_delete = create(:project, organization: organization, created_by: user)
+        initial_count = organization.projects.count
 
+        delete api_v1_project_path(project_to_delete), headers: headers
+
+        expect(organization.projects.count).to eq(initial_count - 1)
         expect(response).to have_http_status(:no_content)
       end
     end
 
     context 'as viewer' do
+      let(:project) { create(:project, organization: organization, created_by: user) }
+
       before do
         user.memberships.update_all(role: :viewer)
       end

@@ -1,5 +1,5 @@
 ActiveAdmin.register User do
-  menu priority: 1
+  menu priority: 6
 
   controller do
     include AdminTenantBypass

@@ -4,29 +4,36 @@ class Plan < ApplicationRecord
   has_many :subscriptions, dependent: :restrict_with_error
   has_many :organizations, through: :subscriptions
 
-  validates :name,        presence: true
-  validates :slug,        presence: true, uniqueness: true
+  validates :name, presence: true
+  validates :slug, presence: true, uniqueness: true
   validates :price_cents, presence: true, numericality: { greater_than_or_equal_to: 0 }
-  validates :interval,    presence: true, inclusion:    { in: %w[month year] }
+  validates :interval, presence: true, inclusion: { in: %w[month year] }
 
-  scope :active,   -> { where(archived: false) }
-  scope :archived, -> { where(archived: true) }
-  scope :by_price, -> { order(price_cents: :asc) }
+  scope :active,     -> { where(archived: false) }
+  scope :archived,   -> { where(archived: true) }
+  scope :by_price,   -> { order(price_cents: :asc) }
+  scope :free_plans, -> { where(price_cents: 0) }
+  scope :paid_plans, -> { where('price_cents > 0') }
 
-  def price_dollars
+  def price_in_dollars
     price_cents / 100.0
   end
+  def display_price
+    return 'Free' if free?
 
-  def formatted_price
-    "$#{format('%.2f', price_dollars)}"
-  end
-
-  def price=(amount)
-    self.price_cents = (amount.to_f * 100).to_i
+    "$#{price_in_dollars.to_i}/#{interval}"
   end
 
   def free?
     price_cents.zero?
+  end
+
+  def paid?
+    !free?
+  end
+
+  def requires_stripe?
+    paid?
   end
 
   def monthly?
@@ -55,14 +62,14 @@ class Plan < ApplicationRecord
   end
 
   def feature_enabled?(feature_name)
-    features[feature_name.to_s].eql?(true)
+    features.is_a?(Hash) && features[feature_name.to_s].eql?(true)
   end
 
   def unlimited_projects?
-    max_projects.nil?
+    max_projects.eql?(-1) || max_projects.nil?
   end
 
   def unlimited_users?
-    max_users.nil?
+    max_users.eql?(-1) || max_users.nil?
   end
 end

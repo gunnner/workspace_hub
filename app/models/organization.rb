@@ -8,6 +8,7 @@ class Organization < ApplicationRecord
 
   has_many :memberships, dependent: :destroy
   has_many :users, through: :memberships
+  has_many :projects, dependent: :destroy
   has_one :subscription, dependent: :destroy
   has_one :plan, through: :subscription
 
@@ -120,7 +121,7 @@ class Organization < ApplicationRecord
     free_plan = Plan.active.find_by(slug: FREE_PLAN_SLUG)
     raise StandardError, "Free plan (#{FREE_PLAN_SLUG}) not found!" unless free_plan
 
-    create_subscription!(plan: free_plan, status: :active)
+    create_subscription!(plan: free_plan, status: :active, current_period_start: Time.current)
   rescue ActiveRecord::RecordInvalid => e
     raise e
   end

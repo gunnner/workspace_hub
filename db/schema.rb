@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_10_20_031912) do
+ActiveRecord::Schema[7.2].define(version: 2025_10_22_171207) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -64,9 +64,11 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_20_031912) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "archived", default: false, null: false
+    t.string "stripe_price_id"
     t.index ["archived"], name: "index_plans_on_archived"
     t.index ["price_cents"], name: "index_plans_on_price_cents"
     t.index ["slug"], name: "index_plans_on_slug", unique: true
+    t.index ["stripe_price_id"], name: "index_plans_on_stripe_price_id"
   end
 
   create_table "projects", force: :cascade do |t|
@@ -95,10 +97,12 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_20_031912) do
     t.string "stripe_customer_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "cancel_at_period_end", default: false
     t.index ["organization_id", "status"], name: "index_subscriptions_on_organization_id_and_status"
     t.index ["organization_id"], name: "index_subscriptions_on_organization_id"
     t.index ["plan_id"], name: "index_subscriptions_on_plan_id"
     t.index ["status"], name: "index_subscriptions_on_status"
+    t.index ["stripe_customer_id"], name: "index_subscriptions_on_stripe_customer_id"
     t.index ["stripe_subscription_id"], name: "index_subscriptions_on_stripe_subscription_id", unique: true
   end
 
