@@ -45,7 +45,7 @@ RSpec.configure do |config|
     Rails.root.join('spec/fixtures')
   ]
   config.include FactoryBot::Syntax::Methods
-
+  config.include ActiveJob::TestHelper
   # If you're not using ActiveRecord, or you'd prefer not to run each of your
   # examples within a transaction, remove the following line or assign false
   # instead of true.
@@ -66,6 +66,9 @@ RSpec.configure do |config|
     DatabaseCleaner.strategy = :transaction
     DatabaseCleaner.start
     ActsAsTenant.current_tenant = nil
+    ActiveJob::Base.queue_adapter = :test
+    clear_enqueued_jobs
+    clear_performed_jobs
   end
 
   config.after(:each) do

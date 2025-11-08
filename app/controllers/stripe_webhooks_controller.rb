@@ -75,6 +75,8 @@ class StripeWebhooksController < ActionController::API
       trial_ends_at:          subscription_data.trial_end ? Time.at(subscription_data.trial_end) : nil
     )
 
+    UserMailer.payment_success_email(organization).deliver_later
+
     Rails.logger.info("Subscription created for organization #{organization_id}")
   rescue ActiveRecord::RecordNotFound => e
     Rails.logger.error("Record not found: #{e.message}")
@@ -115,7 +117,10 @@ class StripeWebhooksController < ActionController::API
       return
     end
 
+    organization = subscription.organization
     subscription.update!(status: :canceled, canceled_at: Time.current)
+    UserMailer.subscription_canceled_email(organization).deliver_later
+
     Rails.logger.info("Subscription canceled: #{subscription.id}")
   rescue StandardError => e
     Rails.logger.error("Error in subscription.deleted: #{e.message}")
@@ -128,6 +133,9 @@ class StripeWebhooksController < ActionController::API
       Rails.logger.warn("Subscription not found for customer: #{invoice.customer}")
       return
     end
+
+    organization = subscription.organization
+    UserMailer.subscription_renewed_email(organization).deliver_later
 
     Rails.logger.info("Payment succeeded for subscription: #{subscription.id}")
   rescue StandardError => e
@@ -142,7 +150,9 @@ class StripeWebhooksController < ActionController::API
       return
     end
 
+    organization = subscription.organization
     subscription.update!(status: :past_due)
+    UserMailer.payment_failed_email(organization).deliver_later
 
     Rails.logger.warn("Payment failed for subscription: #{subscription.id}")
   rescue StandardError => e

@@ -18,6 +18,19 @@ services:
       retries: 5
     networks:
       - workspace_network
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+     - workspace_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   web:
     build:
@@ -32,6 +45,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     env_file:
       - .env
     environment:
@@ -41,6 +56,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
       RAILS_ENV: development
+      REDIS_URL: redis://redis:6379/0
     dns:
       - 8.8.8.8
       - 8.8.4.4
@@ -50,9 +66,28 @@ services:
     stdin_open: true
     tty: true
 
+  sidekiq:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: bundle exec sidekiq
+    volumes:
+      - .:/rails
+      - bundle_cache:/usr/local/bundle
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      RAILS_ENV: development
+    networks:
+      - workspace_network
 volumes:
   postgres_data:
   bundle_cache:
+  redis_data:
 
 networks:
   workspace_network:

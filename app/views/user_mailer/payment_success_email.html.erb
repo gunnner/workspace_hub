@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: #4CAF50; color: white; padding: 20px; text-align: center; border-radius: 5px; }
+    .content { padding: 20px; border: 1px solid #ddd; margin-top: 20px; }
+    .button { background: #2196F3; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 15px; }
+    .footer { text-align: center; color: #999; font-size: 12px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>✅ Payment Successful!</h1>
+    </div>
+
+    <div class="content">
+      <p>Hi <%= @owner.first_name || 'there' %>,</p>
+
+      <p>Your payment has been successfully processed!</p>
+
+      <h2>Subscription Details:</h2>
+      <ul>
+        <li><strong>Organization:</strong> <%= @organization.name %></li>
+        <li><strong>Plan:</strong> <%= @plan.name %></li>
+        <li><strong>Billing Period:</strong> <%= @subscription.current_period_start&.strftime('%B %d, %Y') %> - <%= @subscription.current_period_end&.strftime('%B %d, %Y') %></li>
+      </ul>
+
+      <p>You can now use all features included in your plan!</p>
+
+      <a href="<%= billing_url %>" class="button">Go to Dashboard</a>
+    </div>
+
+    <div class="footer">
+      <p>© <%= Date.today.year %> WorkspaceHub. All rights reserved.</p>
+      <p>You received this email because you own <%= @organization.name %>.</p>
+    </div>
+  </div>
+</body>
+</html>

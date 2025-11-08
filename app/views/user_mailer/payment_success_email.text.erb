@@ -1,0 +1,16 @@
+Payment Successful!
+
+Hi <%= @owner.first_name || 'there' %>,
+
+Your payment has been successfully processed!
+
+Subscription Details:
+- Organization: <%= @organization.name %>
+- Plan: <%= @plan.name %>
+- Billing Period: <%= @subscription.current_period_start&.strftime('%B %d, %Y') %> - <%= @subscription.current_period_end&.strftime('%B %d, %Y') %>
+
+You can now use all features included in your plan!
+
+Go to Dashboard: <%= billing_url %>
+
+© <%= Date.today.year %> WorkspaceHub. All rights reserved.

@@ -1,0 +1,11 @@
+Payment Failed
+
+Hi <%= @owner.first_name || 'there' %>,
+
+Your recent payment could not be processed. Please update your payment method to keep your subscription active.
+
+Your subscription will be suspended after 3 days if payment is not updated.
+
+Update Payment: <%= billing_url %>
+
+© <%= Date.today.year %> WorkspaceHub. All rights reserved.

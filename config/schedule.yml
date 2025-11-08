@@ -1,0 +1,4 @@
+trial_ending_reminder:
+  cron: '0 10 * * *'
+  class: TrialEndingReminderJob
+  description: 'Send trial ending reminder emails (3 days before trial ends)'

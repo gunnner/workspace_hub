@@ -1,0 +1,13 @@
+Subscription Renewed
+
+Hi <%= @owner.first_name || 'there' %>,
+
+Your subscription has been successfully renewed!
+
+<% if @renewal_date %>
+Your access continues until <%= @renewal_date.strftime('%B %d, %Y') %>.
+<% end %>
+
+Thank you for staying with us! 🎉
+
+© <%= Date.today.year %> WorkspaceHub. All rights reserved.

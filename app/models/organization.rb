@@ -82,7 +82,7 @@ class Organization < ApplicationRecord
   end
 
   def owners
-    user.joins(:memberships).where(memberships: { role: :owner })
+    users.joins(:memberships).where(memberships: { role: :owner })
   end
 
   def admins

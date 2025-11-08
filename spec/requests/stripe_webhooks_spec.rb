@@ -1,6 +1,7 @@
 require 'rails_helper'
 
-RSpec.describe 'Payment & Billing Logic', type: :model do
+RSpec.describe StripeWebhooksController, type: :request do
+
   let(:organization) { create(:organization, :with_subscription) }
   let(:plan)         { Plan.find_by!(slug: 'basic') }
 
@@ -234,6 +235,81 @@ RSpec.describe 'Payment & Billing Logic', type: :model do
       it 'returns true when past_due and period ended' do
         organization.subscription.update!(status: :past_due, current_period_end: 1.day.ago)
         expect(organization.subscription.past_due?).to be_truthy
+      end
+    end
+
+    describe 'Webhook Mailer Notifications' do
+      let(:subscription) { organization.subscription }
+
+      describe 'handle_checkout_completed' do
+        it 'sends payment success email' do
+          stripe_subscription = instance_double(
+            Stripe::Subscription,
+            id:        'sub_123',
+            customer:  'cus_123',
+            status:    'active',
+            trial_end: nil,
+            items:     double(data: [ double(current_period_start: Time.current.to_i, current_period_end: 1.month.from_now.to_i) ])
+          )
+
+          session = instance_double(
+            Stripe::Checkout::Session,
+            subscription: 'sub_123',
+            metadata: OpenStruct.new(organization_id: organization.id, plan_id: plan.id)
+          )
+
+          allow(Stripe::Subscription).to receive(:retrieve).and_return(stripe_subscription)
+          allow(UserMailer).to receive_message_chain(:payment_success_email, :deliver_later)
+
+          controller = StripeWebhooksController.new
+          controller.send(:handle_checkout_completed, session)
+
+          expect(UserMailer).to have_received(:payment_success_email).with(organization)
+        end
+      end
+
+      describe 'handle_subscription_deleted' do
+        it 'sends subscription canceled email' do
+          subscription.update!(stripe_subscription_id: 'sub_999')
+          subscription_data = instance_double(Stripe::Subscription, id: 'sub_999')
+
+          allow(UserMailer).to receive_message_chain(:subscription_canceled_email, :deliver_later)
+
+          controller = StripeWebhooksController.new
+          controller.send(:handle_subscription_deleted, subscription_data)
+
+          expect(UserMailer).to have_received(:subscription_canceled_email).with(organization)
+        end
+      end
+
+      describe 'handle_payment_succeeded' do
+        it 'sends subscription renewed email' do
+          subscription.update!(stripe_customer_id: 'cus_777')
+          invoice = instance_double(Stripe::Invoice, customer: 'cus_777')
+
+          allow(UserMailer).to receive_message_chain(:subscription_renewed_email, :deliver_later)
+
+          controller = StripeWebhooksController.new
+          controller.send(:handle_payment_succeeded, invoice)
+
+          expect(UserMailer).to have_received(:subscription_renewed_email).with(organization)
+        end
+      end
+
+      describe 'handle_payment_failed' do
+        it 'updates status and sends payment failed email' do
+          subscription.update!(stripe_customer_id: 'cus_888', status: :active)
+          invoice = instance_double(Stripe::Invoice, customer: 'cus_888')
+
+          allow(UserMailer).to receive_message_chain(:payment_failed_email, :deliver_later)
+
+          controller = StripeWebhooksController.new
+          controller.send(:handle_payment_failed, invoice)
+
+          subscription.reload
+          expect(subscription.status).to eq('past_due')
+          expect(UserMailer).to have_received(:payment_failed_email).with(organization)
+        end
       end
     end
   end

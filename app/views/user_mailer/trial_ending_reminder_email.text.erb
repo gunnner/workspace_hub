@@ -1,0 +1,11 @@
+Your Trial Ends in <%= @days_left %> Days
+
+Hi <%= @owner.first_name || 'there' %>,
+
+Your free trial will expire on <%= @subscription.trial_ends_at.strftime('%B %d, %Y') %>.
+
+To keep using WorkspaceHub, please choose a plan before your trial expires.
+
+Choose a Plan: <%= billing_url %>
+
+© <%= Date.today.year %> WorkspaceHub. All rights reserved.

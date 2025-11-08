@@ -41,5 +41,10 @@ module WorkspaceHub
     config.generators.system_tests = nil
 
     config.middleware.use Rack::Attack
+    config.session_store :cookie_store, key: '_workspace_hub_session'
+
+    # Action Mailer configuration
+    config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
+    config.action_mailer.default_options     = { from: 'noreply@workspacehub.com' }
   end
 end
