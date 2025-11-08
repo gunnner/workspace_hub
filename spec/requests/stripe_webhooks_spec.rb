@@ -1,7 +1,6 @@
 require 'rails_helper'
 
 RSpec.describe StripeWebhooksController, type: :request do
-
   let(:organization) { create(:organization, :with_subscription) }
   let(:plan)         { Plan.find_by!(slug: 'basic') }
 
